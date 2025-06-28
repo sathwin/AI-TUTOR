@@ -44,19 +44,21 @@ const ChatPanel = ({ lessonId }) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      // Replace with actual API call
+      // Replace with actual API call to your Flask backend
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          prompt: inputValue,
-          context: lessonId 
+          prompt: currentInput,
+          context: lessonId,
+          conversation_history: messages.slice(-5) // Send last 5 messages for context
         }),
       });
 
@@ -74,16 +76,29 @@ const ChatPanel = ({ lessonId }) => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Mock response for demo
-      const assistantMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I understand you're asking about "${inputValue}". Let me help you with that concept. In the context of CUDA programming, this involves understanding how parallel execution works on the GPU architecture.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+      // Enhanced mock responses for demo
+      const responses = [
+        `Great question about "${currentInput}"! In CUDA programming, this concept is fundamental to understanding how parallel execution works on the GPU architecture. Let me break it down for you...`,
+        `I see you're interested in "${currentInput}". This is actually one of the key concepts in GPU computing. Here's what you need to know...`,
+        `Excellent! "${currentInput}" is an important topic. Let me explain this with a practical example that you can try in the code editor...`,
+        `That's a thoughtful question about "${currentInput}". Understanding this will really help you master CUDA programming. Here's the explanation...`
+      ];
+      
+      // Simulate typing delay for more realistic feel
+      setTimeout(() => {
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: responses[Math.floor(Math.random() * responses.length)],
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        setIsLoading(false);
+      }, 1200 + Math.random() * 800); // Random delay between 1.2-2 seconds
+      
+      return; // Exit early for mock response
     } finally {
-      setIsLoading(false);
+      if (!error) setIsLoading(false);
     }
   };
 
@@ -99,41 +114,57 @@ const ChatPanel = ({ lessonId }) => {
   };
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-full shadow-lg">
+      <div className="p-4 border-b border-border bg-gradient-to-r from-primary/5 to-primary/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg floating">
+            <Bot className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-primary">AI Tutor</h3>
+            <p className="text-xs text-muted-foreground">
+              {isLoading ? 'Typing...' : 'Online • Ready to help'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <CardContent className="flex flex-col h-full p-0">
         <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => (
+          <div className="space-y-6">
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 animate-fade-in ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 {message.role === 'assistant' && (
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center shadow-md">
                       <Bot className="h-4 w-4 text-primary-foreground" />
                     </div>
                   </div>
                 )}
                 
-                <div className={`max-w-[80%] ${message.role === 'user' ? 'order-1' : ''}`}>
+                <div className={`max-w-[85%] ${message.role === 'user' ? 'order-1' : ''}`}>
                   <div
-                    className={`rounded-lg px-3 py-2 ${
+                    className={`rounded-2xl px-4 py-3 shadow-sm animate-scale-in ${
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
+                        ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground'
+                        : 'bg-card border border-border'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 px-1">
+                  <p className="text-xs text-muted-foreground mt-2 px-2 flex items-center gap-1">
                     {formatTime(message.timestamp)}
+                    {message.role === 'user' && <span className="text-primary">•</span>}
                   </p>
                 </div>
                 
                 {message.role === 'user' && (
                   <div className="flex-shrink-0 order-2">
-                    <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-secondary to-accent rounded-full flex items-center justify-center shadow-md">
                       <User className="h-4 w-4 text-secondary-foreground" />
                     </div>
                   </div>
@@ -142,16 +173,20 @@ const ChatPanel = ({ lessonId }) => {
             ))}
             
             {isLoading && (
-              <div className="flex gap-3 justify-start">
+              <div className="flex gap-3 justify-start animate-fade-in">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-primary to-primary/80 rounded-full flex items-center justify-center shadow-md">
                     <Bot className="h-4 w-4 text-primary-foreground" />
                   </div>
                 </div>
-                <div className="bg-muted rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
+                <div className="bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                    <span className="text-sm text-muted-foreground">AI is thinking...</span>
                   </div>
                 </div>
               </div>
@@ -161,23 +196,51 @@ const ChatPanel = ({ lessonId }) => {
           </div>
         </ScrollArea>
         
-        <div className="border-t border-border p-4">
-          <div className="flex gap-2">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about this lesson..."
-              disabled={isLoading}
-              className="flex-1"
-            />
+        <div className="border-t border-border p-4 bg-muted/30">
+          <div className="flex gap-3">
+            <div className="flex-1 relative">
+              <Input
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask me anything about CUDA programming..."
+                disabled={isLoading}
+                className="pr-12 rounded-full border-2 focus:border-primary/50 transition-all duration-200"
+              />
+              {inputValue.trim() && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">
+                  {inputValue.length}/500
+                </div>
+              )}
+            </div>
             <Button 
               onClick={handleSendMessage} 
               disabled={!inputValue.trim() || isLoading}
               size="icon"
+              variant="gradient"
+              className="rounded-full w-10 h-10 shadow-lg"
             >
               <Send className="h-4 w-4" />
             </Button>
+          </div>
+          
+          {/* Quick suggestions */}
+          <div className="flex gap-2 mt-3 flex-wrap">
+            {!isLoading && messages.length <= 1 && [
+              "What is CUDA?",
+              "How does GPU memory work?",
+              "Show me a code example"
+            ].map((suggestion, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                className="text-xs rounded-full"
+                onClick={() => setInputValue(suggestion)}
+              >
+                {suggestion}
+              </Button>
+            ))}
           </div>
         </div>
       </CardContent>

@@ -267,18 +267,27 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
   }, []);
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    <div className="flex flex-col h-full space-y-4 animate-fade-in">
       {/* Code Editor */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center justify-between">
-            Code Editor
+      <Card className="shadow-lg">
+        <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardTitle className="text-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Play className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-primary">CUDA Code Lab</h3>
+                <p className="text-xs text-muted-foreground">Write and execute your CUDA code</p>
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button
                 onClick={runCode}
                 disabled={isRunning}
                 size="sm"
-                className="flex items-center gap-2"
+                variant="gradient"
+                className="flex items-center gap-2 shadow-lg enhanced-hover"
               >
                 {isRunning ? (
                   <>
@@ -288,7 +297,7 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
                 ) : (
                   <>
                     <Play className="h-4 w-4" />
-                    Run
+                    Run Code
                   </>
                 )}
               </Button>
@@ -297,7 +306,7 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
                   onClick={stopExecution}
                   size="sm"
                   variant="destructive"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 enhanced-hover"
                 >
                   <Square className="h-4 w-4" />
                   Stop
@@ -306,29 +315,81 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <CodeEditor
-            value={code}
-            onChange={setCode}
-            language="python"
-            height="200px"
-          />
+        <CardContent className="p-0">
+          <div className="relative">
+            <CodeEditor
+              value={code}
+              onChange={setCode}
+              language="python"
+              height="250px"
+            />
+            {/* Code metrics overlay */}
+            <div className="absolute top-2 right-2 flex gap-2">
+              <div className="bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1 text-xs text-white">
+                Lines: {code.split('\n').length}
+              </div>
+              <div className="bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1 text-xs text-white">
+                Python
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Console Output */}
-      <div className="flex-1">
+      <div className="flex-1 animate-slide-in-right">
         <ConsoleLog logs={logs} isConnected={wsConnected} />
       </div>
 
       {/* Profiling Chart */}
       {profilingData && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">GPU Performance</CardTitle>
+        <Card className="shadow-lg animate-scale-in">
+          <CardHeader className="pb-3 bg-gradient-to-r from-green-500/5 to-blue-500/5">
+            <CardTitle className="text-lg flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <svg className="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-green-600 dark:text-green-400">GPU Performance</h3>
+                <p className="text-xs text-muted-foreground">Real-time profiling data</p>
+              </div>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <ProfilerChart data={profilingData} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quick Actions */}
+      {!isRunning && !profilingData && (
+        <Card className="shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium">Ready to run your code</h4>
+                <p className="text-xs text-muted-foreground">Click "Run Code" to execute and see results</p>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCode(getDefaultCode(lessonId))}
+                  className="text-xs"
+                >
+                  Reset
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                >
+                  Examples
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
