@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent } from './ui/card';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User } from 'lucide-react';
 
 const ChatPanel = ({ lessonId }) => {
   const [messages, setMessages] = useState([]);
@@ -98,7 +98,7 @@ const ChatPanel = ({ lessonId }) => {
       
       return; // Exit early for mock response
     } finally {
-      if (!error) setIsLoading(false);
+      // setIsLoading is handled in the setTimeout for mock response
     }
   };
 
