@@ -119,22 +119,12 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
     setProfilingData(null);
 
     try {
-      // Start code execution
-      const response = await fetch('/api/run-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setJobId(data.job_id);
-        connectWebSocket(data.job_id);
-      } else {
-        throw new Error('Failed to start code execution');
-      }
+      // Import API client dynamically
+      const { default: apiClient } = await import('../utils/api');
+      
+      const data = await apiClient.runCode(code);
+      setJobId(data.job_id);
+      connectWebSocket(data.job_id);
     } catch (error) {
       console.error('Error running code:', error);
       // Mock execution for demo
@@ -142,13 +132,15 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
     }
   };
 
-  const connectWebSocket = (jobId) => {
+  const connectWebSocket = async (jobId) => {
     if (wsRef.current) {
       wsRef.current.close();
     }
 
     try {
-      const ws = new WebSocket(`ws://localhost:8000/ws/logs/${jobId}`);
+      // Import API client dynamically
+      const { default: apiClient } = await import('../utils/api');
+      const ws = apiClient.createLogWebSocket(jobId);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -239,11 +231,10 @@ print(f"Results match: {np.allclose(c_cpu, cp.asnumpy(c_gpu))}")`
 
   const fetchProfilingData = async (jobId) => {
     try {
-      const response = await fetch(`/api/profiling/${jobId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProfilingData(data);
-      }
+      // Import API client dynamically
+      const { default: apiClient } = await import('../utils/api');
+      const data = await apiClient.getProfilingData(jobId);
+      setProfilingData(data);
     } catch (error) {
       console.error('Error fetching profiling data:', error);
     }

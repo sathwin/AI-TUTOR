@@ -49,31 +49,23 @@ const ChatPanel = ({ lessonId }) => {
     setIsLoading(true);
 
     try {
-      // Replace with actual API call to your Flask backend
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          prompt: currentInput,
-          context: lessonId,
-          conversation_history: messages.slice(-5) // Send last 5 messages for context
-        }),
-      });
+      // Import API client dynamically
+      const { default: apiClient } = await import('../utils/api');
+      
+      const data = await apiClient.chat(
+        currentInput,
+        lessonId,
+        messages.slice(-5) // Send last 5 messages for context
+      );
 
-      if (response.ok) {
-        const data = await response.json();
-        const assistantMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else {
-        throw new Error('Failed to get response');
-      }
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: data.response,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error sending message:', error);
       // Enhanced mock responses for demo
@@ -95,10 +87,6 @@ const ChatPanel = ({ lessonId }) => {
         setMessages(prev => [...prev, assistantMessage]);
         setIsLoading(false);
       }, 1200 + Math.random() * 800); // Random delay between 1.2-2 seconds
-      
-      return; // Exit early for mock response
-    } finally {
-      // setIsLoading is handled in the setTimeout for mock response
     }
   };
 

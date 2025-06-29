@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScrollArea } from './ui/scroll-area';
 import { Button } from './ui/button';
 import { ChevronDown, ChevronRight, BookOpen, Play, CheckCircle, Clock, Lock } from 'lucide-react';
+import BackendStatus from './BackendStatus';
 
 const Sidebar = ({ onSelectLesson, selectedLessonId }) => {
   const [modules, setModules] = useState([]);
