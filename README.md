@@ -17,7 +17,7 @@ ai-tutor/
 │   │   └── ...
 │   ├── public/
 │   └── package.json
-├── backend/            # FastAPI backend (coming soon)
+├── backend/            # FastAPI backend 
 └── README.md          # This file
 ```
 
